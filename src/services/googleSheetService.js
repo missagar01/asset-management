@@ -40,7 +40,9 @@ export async function postAssetToGoogleSheet(record) {
 
   // Format row matching Sheet1's 18 columns
   const payload = {
+    action: record.action || 'save',
     tagNo: record.tagNo,
+    originalTagNo: record.originalTagNo || record.tagNo,
     entity: record.entity,
     location: record.location,
     userName: record.userName,
@@ -74,6 +76,39 @@ export async function postAssetToGoogleSheet(record) {
       status: 'error',
       message: err.message || 'Failed to communicate with cloud endpoint'
     };
+  }
+}
+
+/**
+ * Delete an asset record from the deployed Google Sheet Web App by Tag No
+ * 
+ * @param {string} tagNo - The Tag Number to delete
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export async function deleteAssetFromGoogleSheet(tagNo) {
+  const deployedUrl = getDeployedSheetUrl();
+
+  if (!isDeployedUrlConfigured() || !tagNo) {
+    return { success: false, message: 'Deployed URL not configured or missing Tag No' };
+  }
+
+  try {
+    await fetch(deployedUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'delete',
+        tagNo: String(tagNo).trim().toUpperCase()
+      })
+    });
+
+    return { success: true, message: `Deleted ${tagNo} from cloud database` };
+  } catch (err) {
+    console.error('Error deleting from cloud endpoint:', err);
+    return { success: false, message: err.message };
   }
 }
 

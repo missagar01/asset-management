@@ -16,6 +16,7 @@ import { generateTagNo } from './utils/tagGenerator';
 import { parseUserPermissions } from './utils/routePermissions';
 import { 
   postAssetToGoogleSheet, 
+  deleteAssetFromGoogleSheet,
   isDeployedUrlConfigured, 
   fetchAssetsFromGoogleSheet,
   fetchMastersData,
@@ -224,10 +225,15 @@ export function App() {
   // Handler: Save / Update Record
   const handleSaveRecord = (savedRecord) => {
     setRecords(prev => {
-      const index = prev.findIndex(r => r.id === savedRecord.id);
+      const targetTag = (savedRecord.originalTagNo || savedRecord.tagNo || '').trim().toUpperCase();
+      const index = prev.findIndex(r => 
+        r.id === savedRecord.id || 
+        (targetTag && (r.tagNo || '').trim().toUpperCase() === targetTag)
+      );
+
       if (index >= 0) {
         const updated = [...prev];
-        updated[index] = savedRecord;
+        updated[index] = { ...updated[index], ...savedRecord };
         return updated;
       } else {
         return [savedRecord, ...prev];
@@ -244,15 +250,27 @@ export function App() {
 
   // Handler: Delete Single
   const handleDelete = (id) => {
+    const toDelete = records.find(r => r.id === id);
     setRecords(prev => prev.filter(r => r.id !== id));
     showToast('Asset record deleted');
+
+    if (toDelete && isDeployedUrlConfigured()) {
+      deleteAssetFromGoogleSheet(toDelete.tagNo);
+    }
   };
 
   // Handler: Delete Selected
   const handleDeleteSelected = (selectedIds) => {
     const idSet = new Set(selectedIds);
+    const toDelete = records.filter(r => idSet.has(r.id));
     setRecords(prev => prev.filter(r => !idSet.has(r.id)));
     showToast(`${selectedIds.length} records removed`);
+
+    if (isDeployedUrlConfigured()) {
+      toDelete.forEach(r => {
+        deleteAssetFromGoogleSheet(r.tagNo);
+      });
+    }
   };
 
   // Handler: Export Selected

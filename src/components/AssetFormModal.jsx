@@ -182,6 +182,8 @@ export function AssetFormModal({
     const recordData = {
       id: editRecord ? editRecord.id : `rec-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       tagNo: tagNo.trim().toUpperCase(),
+      originalTagNo: editRecord ? editRecord.tagNo : undefined,
+      isEdit: Boolean(editRecord),
       entity: cleanCodePart(entity),
       location: cleanCodePart(location),
       userName: userName.trim(),
