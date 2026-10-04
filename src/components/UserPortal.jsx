@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LogOut, 
   Layers, 
@@ -35,7 +35,7 @@ import {
   ASSET_PRESETS 
 } from '../constants/assets';
 import { generateTagNo, validateTagNo, cleanCodePart } from '../utils/tagGenerator';
-import { postAssetToGoogleSheet, isDeployedUrlConfigured } from '../services/googleSheetService';
+import { isDeployedUrlConfigured } from '../services/googleSheetService';
 import { TagBadgeModal } from './TagBadgeModal';
 
 // Icon map for the 14 assets
@@ -75,6 +75,7 @@ export function UserPortal({
   const [assets, setAssets] = useState({});
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   
   // Submission success state
   const [submittedRecord, setSubmittedRecord] = useState(null);
@@ -105,6 +106,8 @@ export function UserPortal({
     setSystemIp('');
     setIsAutoTag(true);
     setError('');
+    isSubmittingRef.current = false;
+    setIsSubmitting(false);
     setSubmittedRecord(null);
     setCloudStatus('');
 
@@ -140,6 +143,7 @@ export function UserPortal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmittingRef.current || isSubmitting) return;
     setError('');
 
     if (!entity.trim()) {
@@ -161,42 +165,45 @@ export function UserPortal({
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
-    const recordData = {
-      id: `rec-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      tagNo: tagNo.trim().toUpperCase(),
-      entity: cleanCodePart(entity),
-      location: cleanCodePart(location),
-      userName: userName.trim(),
-      systemIp: systemIp.trim(),
-      assets: { ...assets },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      const recordData = {
+        id: `rec-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        tagNo: tagNo.trim().toUpperCase(),
+        entity: cleanCodePart(entity),
+        location: cleanCodePart(location),
+        userName: userName.trim(),
+        systemIp: systemIp.trim(),
+        assets: { ...assets },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-    // 1. Save to local repository
-    onSaveRecord(recordData);
-
-    // 2. Post to cloud endpoint if configured
-    if (isDeployedUrlConfigured()) {
-      setCloudStatus('Synchronizing with central database...');
-      try {
-        const cloudRes = await postAssetToGoogleSheet(recordData);
-        if (cloudRes.success) {
-          setCloudStatus('Synchronized directly with central database!');
-        } else {
+      // Save to local registry and synchronize with cloud database via onSaveRecord
+      if (isDeployedUrlConfigured()) {
+        setCloudStatus('Synchronizing with central database...');
+        try {
+          const cloudRes = await onSaveRecord(recordData);
+          if (cloudRes?.success) {
+            setCloudStatus('Synchronized directly with central database!');
+          } else {
+            setCloudStatus('Saved locally to registry');
+          }
+        } catch (err) {
           setCloudStatus('Saved locally to registry');
         }
-      } catch (err) {
-        setCloudStatus('Saved locally to registry');
+      } else {
+        await onSaveRecord(recordData);
+        setCloudStatus('Saved to asset register');
       }
-    } else {
-      setCloudStatus('Saved to asset register');
-    }
 
-    setIsSubmitting(false);
-    setSubmittedRecord(recordData);
+      setSubmittedRecord(recordData);
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   const selectedCount = Object.values(assets).filter(Boolean).length;

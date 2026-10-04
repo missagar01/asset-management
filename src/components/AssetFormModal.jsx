@@ -67,6 +67,7 @@ export function AssetFormModal({
   const [isAutoTag, setIsAutoTag] = useState(true);
   const [assets, setAssets] = useState({});
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Effective entity list (Masters sheet entities)
   const entityOptions = availableEntities.length > 0 ? availableEntities : [];
@@ -98,6 +99,7 @@ export function AssetFormModal({
       setTagNo('');
     }
     setError('');
+    setIsSubmitting(false);
   }, [editRecord, isOpen, availableEntities]);
 
   // Recalculate Tag No when Entity or Location changes if isAutoTag is true
@@ -153,8 +155,9 @@ export function AssetFormModal({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
 
     if (!entity.trim()) {
@@ -180,22 +183,27 @@ export function AssetFormModal({
       return;
     }
 
-    const recordData = {
-      id: editRecord ? editRecord.id : `rec-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      tagNo: tagNo.trim().toUpperCase(),
-      originalTagNo: editRecord ? editRecord.tagNo : undefined,
-      isEdit: Boolean(editRecord),
-      entity: cleanCodePart(entity),
-      location: cleanCodePart(location),
-      userName: userName.trim(),
-      systemIp: systemIp.trim(),
-      assets: { ...assets },
-      updatedAt: new Date().toISOString(),
-      createdAt: editRecord ? editRecord.createdAt : new Date().toISOString()
-    };
+    setIsSubmitting(true);
+    try {
+      const recordData = {
+        id: editRecord ? editRecord.id : `rec-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        tagNo: tagNo.trim().toUpperCase(),
+        originalTagNo: editRecord ? editRecord.tagNo : undefined,
+        isEdit: Boolean(editRecord),
+        entity: cleanCodePart(entity),
+        location: cleanCodePart(location),
+        userName: userName.trim(),
+        systemIp: systemIp.trim(),
+        assets: { ...assets },
+        updatedAt: new Date().toISOString(),
+        createdAt: editRecord ? editRecord.createdAt : new Date().toISOString()
+      };
 
-    onSave(recordData);
-    onClose();
+      await onSave(recordData);
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedCount = Object.values(assets).filter(Boolean).length;
@@ -470,9 +478,10 @@ export function AssetFormModal({
               id="btn-save-asset"
               type="submit" 
               className="btn btn-primary"
+              disabled={isSubmitting}
             >
               <Check size={16} />
-              <span>{editRecord ? 'Update Asset' : 'Generate & Save Asset'}</span>
+              <span>{isSubmitting ? 'Saving...' : (editRecord ? 'Update Asset' : 'Generate & Save Asset')}</span>
             </button>
           </div>
         </form>

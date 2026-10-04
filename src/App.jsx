@@ -223,7 +223,7 @@ export function App() {
   };
 
   // Handler: Save / Update Record
-  const handleSaveRecord = (savedRecord) => {
+  const handleSaveRecord = async (savedRecord) => {
     setRecords(prev => {
       const targetTag = (savedRecord.originalTagNo || savedRecord.tagNo || '').trim().toUpperCase();
       const index = prev.findIndex(r => 
@@ -244,8 +244,9 @@ export function App() {
 
     // Sync to deployed cloud endpoint if active
     if (isDeployedUrlConfigured()) {
-      postAssetToGoogleSheet(savedRecord);
+      return await postAssetToGoogleSheet(savedRecord);
     }
+    return { success: true };
   };
 
   // Handler: Delete Single

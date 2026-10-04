@@ -20,6 +20,9 @@ export function isDeployedUrlConfigured() {
   );
 }
 
+// In-flight request tracker to prevent duplicate concurrent network dispatches
+const inFlightPosts = new Map();
+
 /**
  * Send an asset record to the deployed Google Sheet Web App endpoint
  * 
@@ -38,6 +41,15 @@ export async function postAssetToGoogleSheet(record) {
     };
   }
 
+  // Deduplicate rapid / concurrent submissions for the same Tag Number
+  const tagKey = (record.tagNo || record.originalTagNo || '').trim().toUpperCase();
+  const requestKey = `${record.action || 'save'}:${tagKey}`;
+
+  if (requestKey && inFlightPosts.has(requestKey)) {
+    console.warn(`[googleSheetService] Duplicate request for ${requestKey} absorbed. Returning existing dispatch.`);
+    return inFlightPosts.get(requestKey);
+  }
+
   // Format row matching Sheet1's 19 columns
   const payload = {
     action: record.action || 'save',
@@ -54,30 +66,43 @@ export async function postAssetToGoogleSheet(record) {
     }, {})
   };
 
-  try {
-    // Google Apps Script Web Apps with 'Anyone' access can be sent payload via POST
-    await fetch(deployedUrl, {
-      method: 'POST',
-      mode: 'no-cors', // Standard for client-side Google Apps Script webhook
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+  const dispatchPromise = (async () => {
+    try {
+      // Google Apps Script Web Apps with 'Anyone' access can be sent payload via POST
+      await fetch(deployedUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Standard for client-side Google Apps Script webhook
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-    return {
-      success: true,
-      status: 'submitted',
-      message: 'Successfully synchronized with cloud registry!'
-    };
-  } catch (err) {
-    console.error('Error posting to cloud endpoint:', err);
-    return {
-      success: false,
-      status: 'error',
-      message: err.message || 'Failed to communicate with cloud endpoint'
-    };
+      return {
+        success: true,
+        status: 'submitted',
+        message: 'Successfully synchronized with cloud registry!'
+      };
+    } catch (err) {
+      console.error('Error posting to cloud endpoint:', err);
+      return {
+        success: false,
+        status: 'error',
+        message: err.message || 'Failed to communicate with cloud endpoint'
+      };
+    } finally {
+      // Release request key after a brief safety window to avoid any race condition
+      setTimeout(() => {
+        inFlightPosts.delete(requestKey);
+      }, 1500);
+    }
+  })();
+
+  if (requestKey) {
+    inFlightPosts.set(requestKey, dispatchPromise);
   }
+
+  return dispatchPromise;
 }
 
 /**
