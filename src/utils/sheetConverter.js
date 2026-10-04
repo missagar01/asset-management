@@ -62,6 +62,7 @@ export function generateSheetCsv(records, format = 'LABEL') {
       rec.entity || '',
       rec.location || '',
       rec.userName || '',
+      rec.systemIp || '',
       ...ASSET_COLUMNS.map(col =>
         formatAssetValue(Boolean(rec.assets?.[col.key]), format, col.label)
       )
@@ -90,6 +91,7 @@ export function generateSheetTsv(records, format = 'LABEL') {
       rec.entity || '',
       rec.location || '',
       rec.userName || '',
+      rec.systemIp || '',
       ...ASSET_COLUMNS.map(col =>
         formatAssetValue(Boolean(rec.assets?.[col.key]), format, col.label)
       )
@@ -174,14 +176,15 @@ export function parseGoogleSheetText(rawText, existingRecords = []) {
 
   // Detect if first row is header
   const isHeaderPresent = headerRow.some(
-    h => h.includes('tag') || h.includes('entity') || h.includes('location') || h.includes('user') || h.includes('asset')
+    h => h.includes('tag') || h.includes('entity') || h.includes('location') || h.includes('user') || h.includes('ip') || h.includes('asset')
   );
 
   let columnIndices = {
     tagNo: 0,
     entity: 1,
     location: 2,
-    userName: 3
+    userName: 3,
+    systemIp: 4
   };
 
   const assetIndices = {};
@@ -193,6 +196,7 @@ export function parseGoogleSheetText(rawText, existingRecords = []) {
       if (clean.includes('tag')) columnIndices.tagNo = idx;
       else if (clean.includes('entity')) columnIndices.entity = idx;
       else if (clean.includes('location') || clean.includes('loc')) columnIndices.location = idx;
+      else if (clean.includes('systemip') || clean === 'ip' || clean.includes('ipaddress') || (clean.includes('system') && clean.includes('ip'))) columnIndices.systemIp = idx;
       else if (clean.includes('user') || clean.includes('name') || clean.includes('emp')) columnIndices.userName = idx;
       
       // Match Asset1..Asset14 or asset labels like MONITER, CPU, etc.
@@ -205,17 +209,17 @@ export function parseGoogleSheetText(rawText, existingRecords = []) {
       });
     });
   } else {
-    // Standard default positioning 0..17
-    columnIndices = { tagNo: 0, entity: 1, location: 2, userName: 3 };
+    // Standard default positioning 0..18 (19 columns)
+    columnIndices = { tagNo: 0, entity: 1, location: 2, userName: 3, systemIp: 4 };
     ASSET_COLUMNS.forEach((col, idx) => {
-      assetIndices[col.key] = 4 + idx;
+      assetIndices[col.key] = 5 + idx;
     });
   }
 
   // Ensure all 14 asset columns have a default fallback index if not mapped
   ASSET_COLUMNS.forEach((col, idx) => {
     if (assetIndices[col.key] === undefined) {
-      assetIndices[col.key] = 4 + idx;
+      assetIndices[col.key] = 5 + idx;
     }
   });
 
@@ -229,6 +233,7 @@ export function parseGoogleSheetText(rawText, existingRecords = []) {
     let entity = (row[columnIndices.entity] || '').trim();
     let location = (row[columnIndices.location] || '').trim();
     let userName = (row[columnIndices.userName] || '').trim();
+    let systemIp = (row[columnIndices.systemIp] || '').trim();
     let tagNo = (row[columnIndices.tagNo] || '').trim();
 
     // If tagNo is missing, auto-generate it
@@ -249,6 +254,7 @@ export function parseGoogleSheetText(rawText, existingRecords = []) {
       entity: entity || 'CORP',
       location: location || 'MAIN',
       userName: userName || 'Unassigned',
+      systemIp: systemIp || '',
       assets,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

@@ -38,7 +38,7 @@ export async function postAssetToGoogleSheet(record) {
     };
   }
 
-  // Format row matching Sheet1's 18 columns
+  // Format row matching Sheet1's 19 columns
   const payload = {
     action: record.action || 'save',
     tagNo: record.tagNo,
@@ -46,6 +46,7 @@ export async function postAssetToGoogleSheet(record) {
     entity: record.entity,
     location: record.location,
     userName: record.userName,
+    systemIp: record.systemIp || '',
     // Store asset label name if checked, or keep blank if unchecked
     ...ASSET_COLUMNS.reduce((acc, col) => {
       acc[col.key] = record.assets?.[col.key] ? col.label : '';

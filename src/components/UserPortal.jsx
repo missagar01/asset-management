@@ -6,6 +6,7 @@ import {
   Building, 
   MapPin, 
   User, 
+  Network,
   Check, 
   Send, 
   Lock, 
@@ -65,12 +66,10 @@ export function UserPortal({
   currentRoute = 'form',
   onNavigateTab
 }) {
-  const entityOptions = availableEntities.length > 0 ? availableEntities : [];
-  const initialEntity = currentUser?.entity || entityOptions[0] || '';
-
-  const [entity, setEntity] = useState(initialEntity);
+  const [entity, setEntity] = useState('');
   const [location, setLocation] = useState('');
-  const [userName, setUserName] = useState(currentUser?.displayName || currentUser?.username || '');
+  const [userName, setUserName] = useState('');
+  const [systemIp, setSystemIp] = useState('');
   const [tagNo, setTagNo] = useState('');
   const [isAutoTag, setIsAutoTag] = useState(true);
   const [assets, setAssets] = useState({});
@@ -100,10 +99,10 @@ export function UserPortal({
   }, [entity, location, isAutoTag, existingRecords]);
 
   const resetForm = () => {
-    const defEnt = currentUser?.entity || entityOptions[0] || '';
-    setEntity(defEnt);
+    setEntity('');
     setLocation('');
-    setUserName(currentUser?.displayName || currentUser?.username || '');
+    setUserName('');
+    setSystemIp('');
     setIsAutoTag(true);
     setError('');
     setSubmittedRecord(null);
@@ -116,8 +115,7 @@ export function UserPortal({
     // Clean start with all checkboxes unchecked
     setAssets(initial);
 
-    const gen = (defEnt && location) ? generateTagNo(defEnt, location, existingRecords) : '';
-    setTagNo(gen);
+    setTagNo('');
   };
 
   const handleToggleAsset = (key) => {
@@ -171,6 +169,7 @@ export function UserPortal({
       entity: cleanCodePart(entity),
       location: cleanCodePart(location),
       userName: userName.trim(),
+      systemIp: systemIp.trim(),
       assets: { ...assets },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -256,7 +255,7 @@ export function UserPortal({
               {submittedRecord.tagNo}
             </div>
             <div style={{ fontSize: '0.8125rem', color: '#475569' }}>
-              Assigned to: <strong>{submittedRecord.userName}</strong> • {submittedRecord.entity} / {submittedRecord.location}
+              Assigned to: <strong>{submittedRecord.userName}</strong>{submittedRecord.systemIp ? ` • IP: ${submittedRecord.systemIp}` : ''} • {submittedRecord.entity} / {submittedRecord.location}
             </div>
           </div>
 
@@ -435,6 +434,23 @@ export function UserPortal({
                 onChange={e => setUserName(e.target.value)}
                 placeholder="Enter your full name or desk identifier"
                 required
+              />
+            </div>
+
+            {/* System IP */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="user-input-system-ip">
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Network size={14} /> System IP
+                </span>
+              </label>
+              <input
+                id="user-input-system-ip"
+                type="text"
+                className="form-input"
+                value={systemIp}
+                onChange={e => setSystemIp(e.target.value)}
+                placeholder="Enter system IP (e.g. 192.168.1.50)"
               />
             </div>
 

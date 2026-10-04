@@ -66,9 +66,10 @@ export function AssetTable({
       if (query) {
         const matchTag = (rec.tagNo || '').toLowerCase().includes(query);
         const matchUser = (rec.userName || '').toLowerCase().includes(query);
+        const matchIp = (rec.systemIp || '').toLowerCase().includes(query);
         const matchEntity = (rec.entity || '').toLowerCase().includes(query);
         const matchLoc = (rec.location || '').toLowerCase().includes(query);
-        if (!matchTag && !matchUser && !matchEntity && !matchLoc) {
+        if (!matchTag && !matchUser && !matchIp && !matchEntity && !matchLoc) {
           return false;
         }
       }
@@ -157,7 +158,7 @@ export function AssetTable({
             className="search-input"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search by Tag No (e.g. CORP/MUMBAI/0001), User Name, Entity..."
+            placeholder="Search by Tag No (e.g. CORP/MUMBAI/0001), User Name, System IP, Entity..."
           />
         </div>
 
@@ -369,6 +370,9 @@ export function AssetTable({
                       <div className="min-w-0 flex-1">
                         <div className="text-[10px] uppercase font-bold text-slate-500">Allocated To</div>
                         <div className="text-xs font-bold text-slate-900 truncate">{rec.userName}</div>
+                        {rec.systemIp && (
+                          <div className="text-[11px] font-mono text-sky-700 truncate">IP: {rec.systemIp}</div>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -502,6 +506,17 @@ export function AssetTable({
                 </div>
               </th>
 
+              <th className="sortable" onClick={() => handleSort('systemIp')} style={{ minWidth: '130px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span>System IP</span>
+                  {sortField === 'systemIp' ? (
+                    sortDirection === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />
+                  ) : (
+                    <ArrowUpDown size={13} style={{ opacity: 0.4 }} />
+                  )}
+                </div>
+              </th>
+
               <th className="sortable" onClick={() => handleSort('entity')} style={{ minWidth: '120px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   <span>Entity</span>
@@ -542,7 +557,7 @@ export function AssetTable({
           <tbody>
             {filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                     <Search size={36} style={{ color: '#475569' }} />
                     <div style={{ fontSize: '1rem', fontWeight: 600, color: '#94a3b8' }}>
@@ -613,6 +628,17 @@ export function AssetTable({
                         <div className="user-avatar">{userInitials}</div>
                         <div className="user-name">{rec.userName}</div>
                       </div>
+                    </td>
+
+                    {/* System IP */}
+                    <td>
+                      {rec.systemIp ? (
+                        <span className="badge-pill font-mono text-[11px]" style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd' }}>
+                          {rec.systemIp}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>—</span>
+                      )}
                     </td>
 
                     {/* Entity */}
@@ -716,7 +742,7 @@ export function AssetTable({
           Showing <strong>{filteredRecords.length}</strong> of <strong>{records.length}</strong> total records
         </div>
         <div>
-          Schema: Tag No / Entity / Location / User Name / Asset1..14
+          Schema: Tag No / Entity / Location / User Name / System IP / Asset1..14
         </div>
       </div>
     </div>

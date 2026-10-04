@@ -51,9 +51,9 @@ export function ExportModal({ isOpen, onClose, records }) {
             fontSize: '0.8125rem',
             color: '#065f46'
           }}>
-            All exported data follows the standardized 18-column asset registry schema:
+            All exported data follows the standardized 19-column asset registry schema:
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', marginTop: '0.35rem', color: '#047857', fontWeight: 600 }}>
-              [Tag No, Entity, Location, User Name, Asset1..Asset14]
+              [Tag No, Entity, Location, User Name, System IP, Asset1..Asset14]
             </div>
           </div>
 

@@ -21,6 +21,7 @@ export const SHEET1_HEADERS = [
   'Entity',
   'Location',
   'User Name',
+  'System IP',
   'Asset1',
   'Asset2',
   'Asset3',

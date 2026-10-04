@@ -35,17 +35,22 @@ export function TagBadgeModal({ isOpen, onClose, record }) {
     }
 
     if (qrFormat === 'singleline') {
-      return `Tag No: ${record.tagNo || '—'} | Entity: ${record.entity || '—'} | Location: ${record.location || '—'} | Custodian: ${record.userName || '—'} | Hardware: ${hardwareNames}`;
+      const ipPart = record.systemIp ? ` | System IP: ${record.systemIp}` : '';
+      return `Tag No: ${record.tagNo || '—'} | Entity: ${record.entity || '—'} | Location: ${record.location || '—'} | Custodian: ${record.userName || '—'}${ipPart} | Hardware: ${hardwareNames}`;
     }
 
-    // Default: Multi-line Full Details (Tag, Entity, Location, Custodian, Hardware)
-    return [
+    // Default: Multi-line Full Details (Tag, Entity, Location, Custodian, System IP, Hardware)
+    const lines = [
       `Tag No: ${record.tagNo || '—'}`,
       `Entity: ${record.entity || '—'}`,
       `Location: ${record.location || '—'}`,
-      `Custodian: ${record.userName || '—'}`,
-      `Hardware: ${hardwareNames}`
-    ].join('\n');
+      `Custodian: ${record.userName || '—'}`
+    ];
+    if (record.systemIp) {
+      lines.push(`System IP: ${record.systemIp}`);
+    }
+    lines.push(`Hardware: ${hardwareNames}`);
+    return lines.join('\n');
   };
 
   const currentPayload = getQrPayload();
@@ -336,7 +341,7 @@ export function TagBadgeModal({ isOpen, onClose, record }) {
                 </div>
               </div>
 
-              {/* Entity, Location, Custodian Details */}
+              {/* Entity, Location, Custodian & System IP Details */}
               <div className="tag-print-grid">
                 <div>
                   <div className="tag-print-label">Entity</div>
@@ -350,6 +355,12 @@ export function TagBadgeModal({ isOpen, onClose, record }) {
                   <div className="tag-print-label">Assigned Custodian</div>
                   <div className="tag-print-val">{record.userName || '—'}</div>
                 </div>
+                {record.systemIp && (
+                  <div>
+                    <div className="tag-print-label">System IP</div>
+                    <div className="tag-print-val font-mono">{record.systemIp}</div>
+                  </div>
+                )}
               </div>
 
               {/* Checklist of 14 Hardware Assets (4 Columns for Compact Half A5 Fit) */}

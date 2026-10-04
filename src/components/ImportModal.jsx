@@ -62,8 +62,8 @@ export function ImportModal({ isOpen, onClose, onImport, existingRecords }) {
   };
 
   const samplePasteSnippet = 
-`Tag No\tEntity\tLocation\tUser Name\tAsset1\tAsset2\tAsset3\tAsset4\tAsset5\tAsset6\tAsset7\tAsset8\tAsset9\tAsset10\tAsset11\tAsset12\tAsset13\tAsset14
-CORP/MUMBAI-HQ/0007\tCORP\tMUMBAI-HQ\tDevendra Sen\tTRUE\tTRUE\tFALSE\tTRUE\tTRUE\tTRUE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE`;
+`Tag No\tEntity\tLocation\tUser Name\tSystem IP\tAsset1\tAsset2\tAsset3\tAsset4\tAsset5\tAsset6\tAsset7\tAsset8\tAsset9\tAsset10\tAsset11\tAsset12\tAsset13\tAsset14
+CORP/MUMBAI-HQ/0007\tCORP\tMUMBAI-HQ\tDevendra Sen\t192.168.1.100\tTRUE\tTRUE\tFALSE\tTRUE\tTRUE\tTRUE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE\tFALSE`;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -91,7 +91,7 @@ CORP/MUMBAI-HQ/0007\tCORP\tMUMBAI-HQ\tDevendra Sen\tTRUE\tTRUE\tFALSE\tTRUE\tTRU
             fontSize: '0.8125rem',
             color: '#0369a1'
           }}>
-            <strong>Instructions:</strong> Copy rows from your spreadsheet or data table (Ctrl+C), and paste directly into the box below, or upload a <code>.csv</code> file. All 18 standard columns will be mapped automatically.
+            <strong>Instructions:</strong> Copy rows from your spreadsheet or data table (Ctrl+C), and paste directly into the box below, or upload a <code>.csv</code> file. All 19 standard columns will be mapped automatically.
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -132,7 +132,7 @@ CORP/MUMBAI-HQ/0007\tCORP\tMUMBAI-HQ\tDevendra Sen\tTRUE\tTRUE\tFALSE\tTRUE\tTRU
             }}
             value={inputText}
             onChange={handleTextChange}
-            placeholder={`Paste data (TSV / CSV) here...\n(Columns: Tag No, Entity, Location, User Name, Asset1..Asset14)`}
+            placeholder={`Paste data (TSV / CSV) here...\n(Columns: Tag No, Entity, Location, User Name, System IP, Asset1..Asset14)`}
           />
 
           {errorMsg && (
@@ -203,6 +203,7 @@ CORP/MUMBAI-HQ/0007\tCORP\tMUMBAI-HQ\tDevendra Sen\tTRUE\tTRUE\tFALSE\tTRUE\tTRU
                     <tr style={{ background: '#f8fafc', color: '#475569', borderBottom: '1px solid var(--border-subtle)' }}>
                       <th style={{ padding: '0.4rem 0.6rem' }}>Tag No</th>
                       <th style={{ padding: '0.4rem 0.6rem' }}>User Name</th>
+                      <th style={{ padding: '0.4rem 0.6rem' }}>System IP</th>
                       <th style={{ padding: '0.4rem 0.6rem' }}>Entity</th>
                       <th style={{ padding: '0.4rem 0.6rem' }}>Location</th>
                       <th style={{ padding: '0.4rem 0.6rem' }}>Assets Count</th>
@@ -215,6 +216,7 @@ CORP/MUMBAI-HQ/0007\tCORP\tMUMBAI-HQ\tDevendra Sen\tTRUE\tTRUE\tFALSE\tTRUE\tTRU
                         <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                           <td style={{ padding: '0.4rem 0.6rem', fontFamily: 'var(--font-mono)', color: '#0284c7', fontWeight: 600 }}>{r.tagNo}</td>
                           <td style={{ padding: '0.4rem 0.6rem', color: '#0f172a' }}>{r.userName}</td>
+                          <td style={{ padding: '0.4rem 0.6rem', fontFamily: 'var(--font-mono)', color: '#0369a1' }}>{r.systemIp || '—'}</td>
                           <td style={{ padding: '0.4rem 0.6rem', color: '#475569' }}>{r.entity}</td>
                           <td style={{ padding: '0.4rem 0.6rem', color: '#475569' }}>{r.location}</td>
                           <td style={{ padding: '0.4rem 0.6rem', color: '#059669', fontWeight: 600 }}>{count} devices active</td>

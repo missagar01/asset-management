@@ -22,6 +22,7 @@ import {
   Tv, 
   Server,
   User,
+  Network,
   Building,
   MapPin,
   Tag
@@ -61,6 +62,7 @@ export function AssetFormModal({
   const [entity, setEntity] = useState('');
   const [location, setLocation] = useState('');
   const [userName, setUserName] = useState('');
+  const [systemIp, setSystemIp] = useState('');
   const [tagNo, setTagNo] = useState('');
   const [isAutoTag, setIsAutoTag] = useState(true);
   const [assets, setAssets] = useState({});
@@ -75,15 +77,15 @@ export function AssetFormModal({
       setEntity(editRecord.entity || '');
       setLocation(editRecord.location || '');
       setUserName(editRecord.userName || '');
+      setSystemIp(editRecord.systemIp || '');
       setTagNo(editRecord.tagNo || '');
       setIsAutoTag(false); // keep manual/existing tag when editing by default
       setAssets(editRecord.assets || {});
     } else {
-      // Default new record with first Masters entity if available
-      const defaultEntity = entityOptions[0] || '';
-      setEntity(defaultEntity);
+      setEntity('');
       setLocation('');
       setUserName('');
+      setSystemIp('');
       setIsAutoTag(true);
       
       const initialAssets = {};
@@ -93,8 +95,7 @@ export function AssetFormModal({
       // Clean start with all checkboxes unchecked
       setAssets(initialAssets);
 
-      const generated = generateTagNo(defaultEntity, '', existingRecords);
-      setTagNo(generated);
+      setTagNo('');
     }
     setError('');
   }, [editRecord, isOpen, availableEntities]);
@@ -187,6 +188,7 @@ export function AssetFormModal({
       entity: cleanCodePart(entity),
       location: cleanCodePart(location),
       userName: userName.trim(),
+      systemIp: systemIp.trim(),
       assets: { ...assets },
       updatedAt: new Date().toISOString(),
       createdAt: editRecord ? editRecord.createdAt : new Date().toISOString()
@@ -354,6 +356,23 @@ export function AssetFormModal({
                 onChange={e => setUserName(e.target.value)}
                 placeholder="Enter user or custodian name"
                 required
+              />
+            </div>
+
+            {/* System IP */}
+            <div className="form-group">
+              <label className="form-label" htmlFor="input-system-ip">
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Network size={14} /> System IP
+                </span>
+              </label>
+              <input
+                id="input-system-ip"
+                type="text"
+                className="form-input"
+                value={systemIp}
+                onChange={e => setSystemIp(e.target.value)}
+                placeholder="Enter system IP (e.g. 192.168.1.50)"
               />
             </div>
 
